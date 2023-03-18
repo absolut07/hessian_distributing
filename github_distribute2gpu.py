@@ -14,7 +14,7 @@ to the solution of the PDE is a neural network and the loss function
 is created based on the equation.
 
 """
-import fje1graph as dnn
+import distributed_nn_functions as dnn
 import tensorflow as tf 
 import pickle
 import time
@@ -24,7 +24,7 @@ import time
 """functions, transformations and gradient"""
 
 #turn W to x
-def pretvori_W_u_x(trainable_vars):
+def W_to_x(trainable_vars):
     sh=tf.shape(trainable_vars[0])[0]*tf.shape(trainable_vars[0])[1]
     x=tf.reshape(trainable_vars[0],[sh,1])
     for v in trainable_vars[1:]:
@@ -35,7 +35,7 @@ def pretvori_W_u_x(trainable_vars):
     return x
 
 #turn x to W
-def pretvori_x_u_W(x, shapes):
+def x_to_W(x, shapes):
     trains=[]
     start=0
     for sh in shapes:
@@ -125,7 +125,7 @@ def test_update(trainable_variables,X,d,a):
         indices=[ind for ind in range(m,len(trainable_variables))]
         dr=dnn.hes_part(x,t,indices2,trainable_variables,part_of_trains,indices)
     X.assign(X+a*d)
-    tt=pretvori_x_u_W(X,shapes)
+    tt=x_to_W(X,shapes)
     i=0
     for tr in tt:
         trainable_variables[i].assign(tr)
@@ -150,7 +150,7 @@ shapes=[]
 for v in trainable_variables:
     shapes.append(tf.shape(v).numpy())
 
-X=pretvori_W_u_x(trainable_variables)
+X=W_to_x(trainable_variables)
 X=tf.Variable(X)
 n=tf.shape(X)[0].numpy()
 
