@@ -8,7 +8,7 @@ But here the goal was distributing on a cluster. It was a tough task,
 a lot of conflicts between old and new version of TF (1 and 2)
 
 """
-import fje1graph as dnn
+import distributed_nn_functions as dnn
 import tensorflow as tf 
 import time
 
@@ -16,7 +16,7 @@ import time
 #%%
 """transforming trainable variables to one array"""
 
-def pretvori_W_u_x(trainable_vars):
+def W_to_x(trainable_vars):
     sh=tf.shape(trainable_vars[0])[0]*tf.shape(trainable_vars[0])[1]
     x=tf.reshape(trainable_vars[0],[sh,1])
     for v in trainable_vars[1:]:
@@ -25,7 +25,7 @@ def pretvori_W_u_x(trainable_vars):
         x=tf.concat([x,v],0)
     return x
 
-def pretvori_x_u_W(x, shapes):
+def x_to_W(x, shapes):
     trains=[]
     start=0
     for sh in shapes:
@@ -61,7 +61,7 @@ def test2(trainable_variables, X, d,a):
     with tf.device("/job:worker/task:1"):
         dr=trainable_variables[1]+2.
         X=X+a*d
-        tt=pretvori_x_u_W(X,shapes)
+        tt=x_to_W(X,shapes)
         i=0
         for tr in tt:
             trainable_variables[i].assign(tr)
@@ -78,7 +78,7 @@ n=272
 
 with tf.compat.v1.Session(server00.target) as sess:
     trainable_variables=dnn.create_weights(10,10,0,0.1)
-    X=pretvori_W_u_x(trainable_variables)
+    X=W_to_x(trainable_variables)
     x=dnn.create_input(1000,0.2)[0]
     t=dnn.create_input(1000,0.2)[1]
     indices2=dnn.create_input(1000,0.2)[2]
