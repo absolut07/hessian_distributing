@@ -110,60 +110,60 @@ def run_network(x, t, trainable_vars):
     u = tf.tanh(tf.matmul(h6, W7) + b7)
     return u
 
-def laplacian1(x, t, indices_zero_one, trains):
+def laplacian1(x, t, trains):
     """derivatives needed for the equation, using autodiff"""
     with tf.GradientTape() as g:
         g.watch(x)
         with tf.GradientTape() as gg:
             gg.watch(x)
-            u = run_network(x, t, indices_zero_one, trains)
+            u = run_network(x, t, trains)
             u1 = u[:, 0:1]
         du1_dx = gg.gradient(u1, x)
     d2u1_dx2 = g.gradient(du1_dx, x)
     return d2u1_dx2
 
 
-def laplacian2(x, t, indices_zero_one, trains):
+def laplacian2(x, t, trains):
     """derivatives needed for the equation, using autodiff"""
     with tf.GradientTape() as g:
         g.watch(x)
         with tf.GradientTape() as gg:
             gg.watch(x)
-            u = run_network(x, t, indices_zero_one, trains)
+            u = run_network(x, t, trains)
             u2 = u[:, 1:]
         du2_dx = gg.gradient(u2, x)
     d2u2_dx2 = g.gradient(du2_dx, x)
     return d2u2_dx2
 
 
-def u1_t(x, t, indices_zero_one, trains):
+def u1_t(x, t, trains):
     """derivatives needed for the equation, using autodiff"""
     with tf.GradientTape() as g:
         g.watch(t)
-        u = run_network(x, t, indices_zero_one, trains)
+        u = run_network(x, t, trains)
         u1 = u[:, 0:1]
     du1dX = g.gradient(u1, t)
     return du1dX
 
 
-def u2_t(x, t, indices_zero_one, trains):
+def u2_t(x, t, trains):
     """derivatives needed for the equation, using autodiff"""
     with tf.GradientTape() as g:
         g.watch(t)
-        u = run_network(x, t, indices_zero_one, trains)
+        u = run_network(x, t, trains)
         u2 = u[:, 1:]
     du2dX = g.gradient(u2, t)
     return du2dX
 
 
 def calc_loss(x, t, indices_zero_one, trains):
-    u = run_network(x, t, indices_zero_one, trains)
+    u = run_network(x, t, trains)
     u1 = u[:, 0:1]
     u2 = u[:, 1:]
-    u2t = u2_t(x, t, indices_zero_one, trains)
-    l1 = laplacian1(x, t, indices_zero_one, trains)
-    u1t = u1_t(x, t, indices_zero_one, trains)
-    l2 = laplacian2(x, t, indices_zero_one, trains)
+    u2t = u2_t(x, t, trains)
+    l1 = laplacian1(x, t, trains)
+    u1t = u1_t(x, t, trains)
+    l2 = laplacian2(x, t, trains)
     deltas1 = -u2t - l1 - 2 * u1 * (tf.pow(u1, 2) + tf.pow(u2, 2))
     deltas2 = u1t - l2 - 2 * u2 * (tf.pow(u1, 2) + tf.pow(u2, 2))
     deltas = tf.concat([deltas1, deltas2], 1)
